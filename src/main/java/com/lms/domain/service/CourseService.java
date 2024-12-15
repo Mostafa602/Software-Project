@@ -10,7 +10,6 @@ import com.lms.domain.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -254,7 +253,7 @@ public class CourseService {
 
     }
 
-    public MaterialDto getMaterial(Long id){
+    public MaterialTransferDto getMaterial(Long id){
         Optional<CourseMaterial> materialOptional = courseMaterialRepository.findById(id);
         if (materialOptional.isEmpty()) {
             throw new IllegalArgumentException("Course Material not found");
@@ -281,7 +280,7 @@ public class CourseService {
         }
         String sysFileName = file.getName();
         String fileName = sysFileName.substring(sysFileName.indexOf("_")+1);
-        return new MaterialDto(
+        return new MaterialTransferDto(
                 resource, contentType, fileName
         );
 

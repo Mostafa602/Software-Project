@@ -2,12 +2,12 @@ package com.lms.domain.dto.course;
 
 import org.springframework.core.io.Resource;
 
-public class MaterialDto {
+public class MaterialTransferDto {
     Resource resource;
     String contentType;
     String name;
 
-    public MaterialDto(Resource resource, String contentType, String name) {
+    public MaterialTransferDto(Resource resource, String contentType, String name) {
         this.resource = resource;
         this.contentType = contentType;
         this.name = name;

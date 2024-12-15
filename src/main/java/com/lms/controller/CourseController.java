@@ -226,11 +226,11 @@ public class CourseController {
     @GetMapping("/materials/{materialId}")
     public ResponseEntity<?> getMaterial(@PathVariable Long materialId) {
          try {
-             MaterialDto materialDto = courseService.getMaterial(materialId);
+             MaterialTransferDto materialTransferDto = courseService.getMaterial(materialId);
              return ResponseEntity.ok()
-                     .contentType(MediaType.parseMediaType(materialDto.getContentType()))
-                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + materialDto.getName() + "\"")
-                     .body(materialDto.getResource());
+                     .contentType(MediaType.parseMediaType(materialTransferDto.getContentType()))
+                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + materialTransferDto.getName() + "\"")
+                     .body(materialTransferDto.getResource());
 
          }
          catch (Exception e) {
