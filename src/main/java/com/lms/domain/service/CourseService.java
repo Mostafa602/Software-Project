@@ -1,25 +1,24 @@
 package com.lms.domain.service;
 
-import com.lms.domain.dto.course.ChoiceDto;
-import com.lms.domain.dto.course.CourseCreationDto;
-import com.lms.domain.dto.course.CourseDto;
-import com.lms.domain.dto.course.QuestionDto;
+import com.lms.domain.dto.course.*;
 import com.lms.domain.dto.user.StudentDto;
-import com.lms.domain.model.course.Choice;
-import com.lms.domain.model.course.Course;
-import com.lms.domain.model.course.Question;
-import com.lms.domain.model.course.QuestionBank;
+import com.lms.domain.model.course.*;
 import com.lms.domain.model.user.Instructor;
 import com.lms.domain.model.user.Student;
 import com.lms.domain.projection.CourseProjection;
-import com.lms.domain.repository.CourseRepository;
-import com.lms.domain.repository.InstructorRepository;
-import com.lms.domain.repository.QuestionRepository;
-import com.lms.domain.repository.StudentRepository;
+import com.lms.domain.repository.*;
 import jakarta.transaction.Transactional;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,14 +29,23 @@ public class CourseService {
     private final StudentRepository studentRepository;
     private final InstructorRepository instructorRepository;
     private final QuestionRepository questionRepository;
+    private final CourseMaterialRepository courseMaterialRepository;
+    private final String uploadPath = "uploads/%d";
 
-    public CourseService(CourseRepository courseRepository, StudentRepository studentRepository,
+    public CourseService(CourseRepository courseRepository,
+                         StudentRepository studentRepository,
                          InstructorRepository instructorRepository,
-                         QuestionRepository questionRepository) {
+                         QuestionRepository questionRepository,
+                         CourseMaterialRepository courseMaterialRepository) {
         this.courseRepository = courseRepository;
         this.studentRepository = studentRepository;
         this.instructorRepository = instructorRepository;
         this.questionRepository = questionRepository;
+        this.courseMaterialRepository = courseMaterialRepository;
+    }
+
+    private String getUploadPath(Long courseId) {
+        return String.format(uploadPath, courseId);
     }
 
     @Transactional
@@ -213,4 +221,71 @@ public class CourseService {
         return questionDtos;
 
     }
+
+    @Transactional
+    public CourseMaterialResponseDto addMaterial(Long courseId, MultipartFile file, Material type){
+        Optional<Course> courseOptional = courseRepository.findById(courseId);
+        if (courseOptional.isEmpty()) {
+            throw new IllegalArgumentException("Course not found");
+        }
+        Course course = courseOptional.get();
+        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+
+        Path uploadPath = Paths.get(getUploadPath(course.getId()));
+
+        try {
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            Path targetPath = uploadPath.resolve(fileName);
+            file.transferTo(targetPath);
+            CourseMaterial material = new CourseMaterial(
+                    targetPath.toString(), type, course
+            );
+            material = courseMaterialRepository.save(material);
+            return new CourseMaterialResponseDto(
+                    material.getId(), targetPath.toString()
+            );
+        }
+        catch (Exception e){
+            throw new IllegalArgumentException(e.getMessage());
+        }
+
+
+    }
+
+    public MaterialDto getMaterial(Long id){
+        Optional<CourseMaterial> materialOptional = courseMaterialRepository.findById(id);
+        if (materialOptional.isEmpty()) {
+            throw new IllegalArgumentException("Course Material not found");
+        }
+        String fileUrl = materialOptional.get().getUrl();
+        File file = new File(fileUrl);
+        String contentType ;
+        try{
+            contentType = Files.probeContentType(file.toPath());
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+        }
+        catch (Exception e){
+            throw new IllegalArgumentException("an error occurred");
+        }
+        Path path = file.toPath();
+        Resource resource;
+        try {
+            resource = new UrlResource(path.toUri());
+        }
+        catch (MalformedURLException e) {
+            throw new IllegalArgumentException("an error occurred");
+        }
+        String sysFileName = file.getName();
+        String fileName = sysFileName.substring(sysFileName.indexOf("_")+1);
+        return new MaterialDto(
+                resource, contentType, fileName
+        );
+
+
+    }
+
 }

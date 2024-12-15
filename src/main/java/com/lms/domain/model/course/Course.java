@@ -35,6 +35,9 @@ public class Course {
     @JoinColumn(name = "question_bank_id")
     private QuestionBank questionBank;
 
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private Set<CourseMaterial> courseMaterials;
+
     public Course(String name, String description, Instructor instructor) {
         this.name = name;
         this.description = description;
@@ -42,6 +45,7 @@ public class Course {
         this.instructors = new HashSet<>();
         this.instructors.add(instructor);
         this.questionBank = new QuestionBank();
+        this.courseMaterials = new HashSet<>();
 
     }
 

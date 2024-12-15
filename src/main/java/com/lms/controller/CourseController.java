@@ -1,16 +1,17 @@
 package com.lms.controller;
 
 import com.lms.domain.dto.BasicResponseDto;
-import com.lms.domain.dto.course.CourseCreationDto;
-import com.lms.domain.dto.course.CourseDto;
-import com.lms.domain.dto.course.CourseEnrollmentDto;
-import com.lms.domain.dto.course.QuestionDto;
+import com.lms.domain.dto.course.*;
+import com.lms.domain.model.course.Material;
 import com.lms.domain.model.user.Roles;
 import com.lms.domain.service.CourseService;
 import com.lms.domain.service.UserService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Objects;
@@ -27,7 +28,7 @@ public class CourseController {
         this.userService = userService;
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity <List<CourseDto>> getCourses() {
         return ResponseEntity.status(HttpStatus.OK).body(courseService.getAllCourses());
     }
@@ -62,7 +63,7 @@ public class CourseController {
         }
     }
 
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<BasicResponseDto> createCourse(@RequestBody CourseCreationDto courseDto) {
         if(userService.getCurrentUserRole() == Roles.ROLE_STUDENT) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new BasicResponseDto(
@@ -197,4 +198,49 @@ public class CourseController {
         }
     }
 
+    @PostMapping("/{courseId}/materials")
+    public ResponseEntity<?> addMaterial(@PathVariable Long courseId,
+        @RequestParam("file")  MultipartFile file,
+         @RequestParam("type") Material type
+    ) {
+        if(type == null || file == null || file.isEmpty() || courseId == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new BasicResponseDto(
+                    "failure",
+                    "please provide all required fields"
+            ));
+        }
+
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(
+                    courseService.addMaterial(courseId, file, type)
+            );
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new BasicResponseDto(
+               "failure",e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/materials/{materialId}")
+    public ResponseEntity<?> getMaterial(@PathVariable Long materialId) {
+         try {
+             MaterialDto materialDto = courseService.getMaterial(materialId);
+             return ResponseEntity.ok()
+                     .contentType(MediaType.parseMediaType(materialDto.getContentType()))
+                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + materialDto.getName() + "\"")
+                     .body(materialDto.getResource());
+
+         }
+         catch (Exception e) {
+             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                     new BasicResponseDto(
+                             "failure",
+                             e.getMessage()
+                     )
+             );
+         }
+
+    }
 }
