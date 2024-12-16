@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.persistence.EntityNotFoundException;
 
 import java.util.List;
 import java.util.Objects;
@@ -43,6 +44,56 @@ public class CourseController {
                     new BasicResponseDto(
                             "failure",
                             "invalid course id."
+                    )
+            );
+        }
+    }
+
+    @DeleteMapping("/{courseId}")
+    public ResponseEntity<?> deleteCourse(@PathVariable Long courseId) {
+        try {
+            courseService.deleteCourse(courseId);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    new BasicResponseDto(
+                            "success",
+                            "course deleted successfully"
+                    )
+            );
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new BasicResponseDto(
+                            "failure",
+                            e.getMessage()
+                    )
+            );
+        }
+    }
+
+    @PutMapping("/{courseId}")
+    public ResponseEntity<?> updateCourseById(@PathVariable Long courseId, @RequestBody CourseUpdateDto courseUpdateDto) {
+        try {
+            courseService.updateCourse(courseId, courseUpdateDto);
+            return ResponseEntity.status(HttpStatus.OK).body(
+                    new BasicResponseDto(
+                            "success",
+                            "Course updated successfully"
+                    )
+            );
+        }
+        catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    new BasicResponseDto(
+                            "failure",
+                            "Course not found with ID: " + courseId
+                    )
+            );
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    new BasicResponseDto(
+                            "failure",
+                            "Failed to update the course. " + e.getMessage()
                     )
             );
         }

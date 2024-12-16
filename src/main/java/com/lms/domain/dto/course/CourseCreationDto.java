@@ -2,14 +2,11 @@ package com.lms.domain.dto.course;
 
 import java.util.List;
 
-public class CourseCreationDto {
-    private String courseName;
-    private String courseDescription;
+public class CourseCreationDto extends CourseUpdateDto {
     private List<Long> instructors;
 
     public CourseCreationDto(String name, String description, List<Long> instructors) {
-        this.courseName = name;
-        this.courseDescription = description;
+        super(name, description);
         this.instructors = instructors;
     }
 
@@ -21,19 +18,4 @@ public class CourseCreationDto {
         this.instructors = instructors;
     }
 
-    public String getDescription() {
-        return courseDescription;
-    }
-
-    public void setDescription(String description) {
-        this.courseDescription = description;
-    }
-
-    public String getName() {
-        return courseName;
-    }
-
-    public void setName(String name) {
-        this.courseName = name;
-    }
 }

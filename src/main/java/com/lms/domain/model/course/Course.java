@@ -51,6 +51,8 @@ public class Course {
 
     public Course() {
         this.instructors = new HashSet<>();
+        this.courseMaterials = new HashSet<>();
+        this.questionBank = new QuestionBank();
 
     }
 

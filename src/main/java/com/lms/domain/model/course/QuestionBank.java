@@ -2,6 +2,7 @@ package com.lms.domain.model.course;
 
 import jakarta.persistence.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -22,7 +23,9 @@ public class QuestionBank {
         this.questions = questions;
     }
 
-    public QuestionBank() {}
+    public QuestionBank() {
+        this.questions = new HashSet<Question>();
+    }
 
     public Long getId() {
         return id;
