@@ -39,8 +39,18 @@ public class SecurityConfig {
                 .authorizeHttpRequests(registry -> {
                     registry.requestMatchers(HttpMethod.POST, "/register").permitAll();
                     registry.requestMatchers(HttpMethod.POST, "/login").permitAll();
-                    registry.requestMatchers(HttpMethod.POST, "courses/enroll").hasAnyRole("STUDENT", "ADMIN");
-                    registry.requestMatchers(HttpMethod.POST, "courses/unenroll").hasAnyRole("STUDENT", "ADMIN", "INSTRUCTOR");
+                    registry.requestMatchers(HttpMethod.DELETE, "courses/{courseId}").hasAnyRole("INSTRUCTOR", "ADMIN"); // delete course
+                    registry.requestMatchers(HttpMethod.PUT, "courses/{courseId}").hasAnyRole("INSTRUCTOR", "ADMIN"); // update course
+                    registry.requestMatchers(HttpMethod.GET, "courses/{courseId}/students").hasAnyRole("INSTRUCTOR", "ADMIN"); // get course students
+                    registry.requestMatchers(HttpMethod.POST, "courses/").hasAnyRole("INSTRUCTOR", "ADMIN"); // add course
+                    registry.requestMatchers(HttpMethod.POST, "courses/enroll").hasAnyRole("STUDENT", "ADMIN"); // enroll course
+                    registry.requestMatchers(HttpMethod.POST, "courses/unenroll").hasAnyRole("STUDENT", "ADMIN", "INSTRUCTOR"); // unenroll course
+                    registry.requestMatchers(HttpMethod.POST, "courses/{courseId}/questions").hasAnyRole("INSTRUCTOR", "ADMIN"); // add question to course question bank
+                    registry.requestMatchers(HttpMethod.GET, "courses/{courseId}/questions").hasAnyRole("INSTRUCTOR", "ADMIN"); // get course question bank
+                    registry.requestMatchers(HttpMethod.DELETE, "courses/{courseId}/questions/{questionId}").hasAnyRole("INSTRUCTOR", "ADMIN"); // delete question from a course
+                    registry.requestMatchers(HttpMethod.GET, "courses/{courseId}/questions/{questionId}").hasAnyRole("INSTRUCTOR", "ADMIN"); // get a question from course qb
+                    registry.requestMatchers(HttpMethod.POST, "courses/{courseId}/materials").hasAnyRole("INSTRUCTOR", "ADMIN"); // add course material
+
                     registry.anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

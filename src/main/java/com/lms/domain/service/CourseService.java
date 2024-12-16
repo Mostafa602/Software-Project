@@ -2,6 +2,8 @@ package com.lms.domain.service;
 
 import com.lms.domain.dto.course.*;
 import com.lms.domain.dto.user.StudentDto;
+import com.lms.domain.execptionhandler.InternalServerException;
+import com.lms.domain.execptionhandler.MissingFieldsException;
 import com.lms.domain.model.course.*;
 import com.lms.domain.model.user.Instructor;
 import com.lms.domain.model.user.Student;
@@ -52,7 +54,7 @@ public class CourseService {
     public void enrollStudent(Long courseId, Long studentId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + courseId));
-        Student student = studentRepository.findById(courseId)
+        Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found with ID: " + studentId));
 
         course.enrollStudent(student);
@@ -63,7 +65,7 @@ public class CourseService {
     public void unenrollStudent(Long courseId, Long studentId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + courseId));
-        Student student = studentRepository.findById(courseId)
+        Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found with ID: " + studentId));
 
 
@@ -86,13 +88,14 @@ public class CourseService {
     }
 
     public CourseDto getCourseById(Long id){
-        CourseProjection courseProjection = courseRepository.findProjectedById(id);
+        Course course = courseRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Course not found with ID: " + id)
+        );
         return new CourseDto(
-                courseProjection.getId(),
-                courseProjection.getName(),
-                courseProjection.getDescription(),
-                courseProjection.getInstructorsFullNames()
-
+                course.getId(),
+                course.getName(),
+                course.getDescription(),
+                course.getInstructorsFullNames()
         );
     }
 
@@ -119,6 +122,7 @@ public class CourseService {
         courseRepository.save(course);
     }
 
+
     public void updateCourse(Long id, CourseUpdateDto courseUpdateDto) {
         Course existingCourse = courseRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + id));
@@ -131,13 +135,11 @@ public class CourseService {
     }
 
     public List<StudentDto> getAllStudents(Long id){
-        Optional<Course> course = courseRepository.findById(id);
-        if(course.isEmpty()){
+        Course course = courseRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + id));
 
-            throw new EntityNotFoundException("Course not found with ID: " + id);
-        }
         List<StudentDto> students = new ArrayList<>();
-        for(Student s : course.get().getEnrolledStudents()){
+        for(Student s : course.getEnrolledStudents()){
             students.add( new StudentDto(s.getId(), s.getFirstName(),
                     s.getLastName(), s.getEmail(), s.getGpa()
             ));
@@ -149,21 +151,25 @@ public class CourseService {
         Instructor instructor = instructorRepository.findById(instructorId).get();
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + courseId));
-
         return course.getInstructors().contains(instructor);
+
+    }
+
+    public Boolean isEnrolled(Long studentId, Long courseId){
+        Student student = studentRepository.findById(studentId).get();
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + courseId));
+        return course.getEnrolledStudents().contains(student);
 
     }
 
     @Transactional
     public void addQuestion(Long courseId, QuestionDto questionDto) {
 
-        Optional<Course> courseOptional = courseRepository.findById(courseId);
-        if (courseOptional.isEmpty()) {
-            throw new IllegalArgumentException("Course not found");
-        }
-        Course course = courseOptional.get();
-        QuestionBank questionBank = course.getQuestionBank();
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + courseId));
 
+        QuestionBank questionBank = course.getQuestionBank();
         Question question ;
         try{
             question = new Question(
@@ -172,7 +178,7 @@ public class CourseService {
             );
         }
         catch (Exception e) {
-            throw new IllegalArgumentException("Provide a question");
+            throw new MissingFieldsException("Provide a question");
         }
 
         Set<Choice> choices = new HashSet<>();
@@ -185,7 +191,7 @@ public class CourseService {
             question.setChoices(choices);
         }
         catch (Exception e) {
-            throw new IllegalArgumentException("Provide Choices");
+            throw new MissingFieldsException("Provide Choices");
         }
 
 
@@ -194,12 +200,24 @@ public class CourseService {
 
     }
 
-    public Set<QuestionDto> getQuestions(Long courseId){
-        Optional<Course> courseOptional = courseRepository.findById(courseId);
-        if (courseOptional.isEmpty()) {
-            throw new IllegalArgumentException("Course not found");
+    public QuestionDto getQuestion(Long questionId){
+        Question question = questionRepository.findById(questionId).orElseThrow(
+                () -> new EntityNotFoundException("Question not found with ID: " + questionId)
+        );
+        Set<ChoiceDto> choices = new HashSet<>();
+        for(Choice choice : question.getChoices()){
+            choices.add(new ChoiceDto(
+                    choice.getContent(),
+                    choice.isTrue()
+            ));
         }
-        Course course = courseOptional.get();
+        return new QuestionDto(question.getContent(), choices);
+    }
+
+    public Set<QuestionDto> getQuestions(Long courseId){
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + courseId));
+
         QuestionBank questionBank = course.getQuestionBank();
 
         Set<QuestionDto> questionDtos = new HashSet<>();
@@ -226,13 +244,19 @@ public class CourseService {
 
     }
 
+    public void deleteQuestion(Long questionId){
+        if(questionRepository.existsById(questionId)){
+           questionRepository.deleteById(questionId);
+        }
+        else
+            throw new EntityNotFoundException("Question not found with ID: " + questionId);
+    }
+
     @Transactional
     public CourseMaterialResponseDto addMaterial(Long courseId, MultipartFile file, Material type){
-        Optional<Course> courseOptional = courseRepository.findById(courseId);
-        if (courseOptional.isEmpty()) {
-            throw new IllegalArgumentException("Course not found");
-        }
-        Course course = courseOptional.get();
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + courseId));
+
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
         Path uploadPath = Paths.get(getUploadPath(course.getId()));
@@ -259,29 +283,31 @@ public class CourseService {
     }
 
     public MaterialTransferDto getMaterial(Long id){
-        Optional<CourseMaterial> materialOptional = courseMaterialRepository.findById(id);
-        if (materialOptional.isEmpty()) {
-            throw new IllegalArgumentException("Course Material not found");
-        }
-        String fileUrl = materialOptional.get().getUrl();
+        CourseMaterial courseMaterial = courseMaterialRepository.findById(id).orElseThrow(
+                ()-> new EntityNotFoundException("Material not found with ID: " + id)
+        );
+        String fileUrl = courseMaterial.getUrl();
         File file = new File(fileUrl);
         String contentType ;
+
         try{
             contentType = Files.probeContentType(file.toPath());
             if (contentType == null) {
                 contentType = "application/octet-stream";
             }
+
         }
         catch (Exception e){
-            throw new IllegalArgumentException("an error occurred");
+            throw new InternalServerException();
         }
         Path path = file.toPath();
         Resource resource;
+
         try {
             resource = new UrlResource(path.toUri());
         }
         catch (MalformedURLException e) {
-            throw new IllegalArgumentException("an error occurred");
+            throw new InternalServerException();
         }
         String sysFileName = file.getName();
         String fileName = sysFileName.substring(sysFileName.indexOf("_")+1);

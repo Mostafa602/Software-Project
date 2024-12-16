@@ -1,5 +1,6 @@
 package com.lms.domain.model.course;
 
+import com.lms.domain.execptionhandler.ConflictException;
 import com.lms.domain.model.user.Instructor;
 import com.lms.domain.model.user.Student;
 import jakarta.persistence.*;
@@ -120,12 +121,12 @@ public class Course {
             this.enrolledNum++;
         }
         else {
-            throw new IllegalStateException("Student is already enrolled in this course.");
+            throw new ConflictException("Student is already enrolled in this course.");
         }
     }
     public void unenrollStudent(Student student) {
         if (enrolledStudents == null || !enrolledStudents.contains(student)) {
-            throw new IllegalStateException("Student is not enrolled in this course.");
+            throw new ConflictException("Student is not enrolled in this course.");
         }
         else {
             enrolledStudents.remove(student);

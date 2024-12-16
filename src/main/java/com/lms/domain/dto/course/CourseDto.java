@@ -1,14 +1,15 @@
 package com.lms.domain.dto.course;
 
 import java.util.List;
+import java.util.Set;
 
 public class CourseDto {
     Long id;
     String name;
     String description;
-    List<String> instructors;
+    Set<String> instructors;
 
-    public CourseDto(Long id, String name, String description, List<String> instructors) {
+    public CourseDto(Long id, String name, String description, Set<String> instructors) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -39,11 +40,11 @@ public class CourseDto {
         this.description = description;
     }
 
-    public List<String> getInstructors() {
+    public Set<String> getInstructors() {
         return instructors;
     }
 
-    public void setInstructors(List<String> instructors) {
+    public void setInstructors(Set<String> instructors) {
         this.instructors = instructors;
     }
 }

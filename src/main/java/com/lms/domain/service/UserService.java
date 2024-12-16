@@ -3,12 +3,14 @@ package com.lms.domain.service;
 import com.lms.config.security.JwtService;
 import com.lms.domain.dto.BasicResponseDto;
 import com.lms.domain.dto.auth.RegisterDto;
+import com.lms.domain.dto.user.UserDto;
 import com.lms.domain.model.user.Instructor;
 import com.lms.domain.model.user.Roles;
 import com.lms.domain.model.user.Student;
 import com.lms.domain.model.user.User;
 import com.lms.domain.repository.StudentRepository;
 import com.lms.domain.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -99,5 +101,23 @@ public class UserService {
 
             }
         }
+    }
+
+    public UserDto getUserById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("User not found with id = " + id)
+        );
+        return new UserDto(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail()
+        );
+    }
+    public void deleteUserById(Long id) {
+        if (!userRepository.existsById(id) ) {
+            throw new EntityNotFoundException("User not found with id = " + id);
+        }
+        userRepository.deleteById(id);
     }
 }
