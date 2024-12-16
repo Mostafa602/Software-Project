@@ -28,44 +28,25 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
-        try{
-            String token = userService.login(loginDto.getEmail(), loginDto.getPassword());
-            Map<String, String> tokenMap = new HashMap<>();
-            tokenMap.put("token", token);
-            return ResponseEntity.status(HttpStatus.OK).body(
-                tokenMap
-            );
-        }
-        catch(Exception e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                    new BasicResponseDto(
-                            "failure",
-                            e.getMessage()
-                    )
-            );
-        }
+        String token = userService.login(loginDto.getEmail(), loginDto.getPassword());
+        Map<String, String> tokenMap = new HashMap<>();
+        tokenMap.put("token", token);
+        return ResponseEntity.status(HttpStatus.OK).body(
+            tokenMap
+        );
 
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDto registerDto) {
-        try{
-            userService.register(registerDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    new BasicResponseDto(
-                            "success",
-                            "User registered successfully"
-                    )
-            );
-        }
-        catch(Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                    new BasicResponseDto(
-                            "failure",
-                            e.getMessage()
-                    )
-            );
-        }
+        userService.register(registerDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                new BasicResponseDto(
+                        "success",
+                        "User registered successfully"
+                )
+        );
+
     }
 
     @GetMapping("/test")
