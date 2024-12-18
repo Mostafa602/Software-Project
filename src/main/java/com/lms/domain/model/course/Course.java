@@ -5,7 +5,9 @@ import com.lms.domain.model.user.Instructor;
 import com.lms.domain.model.user.Student;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -39,22 +41,33 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private Set<CourseMaterial> courseMaterials;
 
+    public List<Assignment> getAssignmentList() {
+        return assignmentList;
+    }
+
+    public void setAssignmentList(List<Assignment> assignmentList) {
+        this.assignmentList = assignmentList;
+    }
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private List<Assignment> assignmentList;
+
     public Course(String name, String description, Instructor instructor) {
         this.name = name;
         this.description = description;
-        this.enrolledNum = 0 ;
+        this.enrolledNum = 0;
         this.instructors = new HashSet<>();
         this.instructors.add(instructor);
         this.questionBank = new QuestionBank();
         this.courseMaterials = new HashSet<>();
-
+        this.assignmentList = new ArrayList<>();
     }
 
     public Course() {
         this.instructors = new HashSet<>();
         this.courseMaterials = new HashSet<>();
         this.questionBank = new QuestionBank();
-
+        this.assignmentList = new ArrayList<>();
     }
 
     public Set<String> getInstructorsFullNames() {

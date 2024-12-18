@@ -50,6 +50,10 @@ public class SecurityConfig {
                     registry.requestMatchers(HttpMethod.DELETE, "courses/{courseId}/questions/{questionId}").hasAnyRole("INSTRUCTOR", "ADMIN"); // delete question from a course
                     registry.requestMatchers(HttpMethod.GET, "courses/{courseId}/questions/{questionId}").hasAnyRole("INSTRUCTOR", "ADMIN"); // get a question from course qb
                     registry.requestMatchers(HttpMethod.POST, "courses/{courseId}/materials").hasAnyRole("INSTRUCTOR", "ADMIN"); // add course material
+                    registry.requestMatchers(HttpMethod.POST, "courses/{courseId}/assignments").hasAnyRole("INSTRUCTOR", "ADMIN"); // Create an assignment
+                    registry.requestMatchers(HttpMethod.PUT, "courses/{courseId}/assignments/{aId}").hasAnyRole("INSTRUCTOR", "ADMIN"); // Update an assignment
+                    registry.requestMatchers(HttpMethod.POST, "courses/{courseId}/assignments/{aId}/submit").hasRole("STUDENT"); // Submit assignment
+                    registry.requestMatchers(HttpMethod.POST, "courses/{courseId}/assignments/{aId}/grade/submission/{subId}").hasAnyRole("INSTRUCTOR", "ADMIN"); // Grade assignment
 
                     registry.anyRequest().authenticated();
                 })

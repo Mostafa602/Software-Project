@@ -64,7 +64,7 @@ public class CourseController {
     // access : ADMIN or INSTRUCTOR (if instructing only)
     @PutMapping("/{courseId}")
     public ResponseEntity<?> updateCourseById(@PathVariable Long courseId, @RequestBody CourseUpdateDto courseUpdateDto) {
-        if(userService.getCurrentUserRole() == Roles.ROLE_INSTRUCTOR &&
+        if(userService.getCurrentUserRole() == Roles.ROLE_INSTRUCTOR && //IMPORTANT
                 !courseService.isInstructing(userService.getCurrentUserId() ,courseId)) {
             throw new UnauthorizedAccessException();
         }
