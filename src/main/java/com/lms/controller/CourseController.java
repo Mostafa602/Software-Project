@@ -246,4 +246,28 @@ public class CourseController {
                  .body(materialTransferDto.getResource());
 
     }
+    // lesson
+    @PostMapping("/{courseId}/lesson/")
+    public ResponseEntity<?> postMethodName(@PathVariable("courseId") long c_id,@RequestBody LessonDto lesson) {
+
+        if(userService.getCurrentUserRole() == Roles.ROLE_INSTRUCTOR &&
+                !courseService.isInstructing(userService.getCurrentUserId() ,c_id)) {
+            throw new UnauthorizedAccessException();
+        }
+        courseService.addingLesson(c_id, lesson);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new BasicResponseDto(
+            "success", "lesson added successfully!"
+        ));
+    }
+
+    @GetMapping("/{courseId}/lesson/{OTP}")
+    public ResponseEntity<?> getMethodName(@PathVariable("courseId") Long c_id,@PathVariable("OTP") Long OTP) {
+
+        if(userService.getCurrentUserRole() == Roles.ROLE_INSTRUCTOR &&
+                !courseService.isInstructing(userService.getCurrentUserId() ,c_id)) {
+            throw new UnauthorizedAccessException();
+        }
+        LessonDto lessonDto = courseService.getLesson(OTP, c_id);
+        return ResponseEntity.status(HttpStatus.OK).body(lessonDto);
+    }
 }

@@ -26,7 +26,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class CourseService {
-
+    
+    private final LessonRepository lessonRepository;
     private final CourseRepository courseRepository;
     private final StudentRepository studentRepository;
     private final InstructorRepository instructorRepository;
@@ -38,12 +39,14 @@ public class CourseService {
                          StudentRepository studentRepository,
                          InstructorRepository instructorRepository,
                          QuestionRepository questionRepository,
-                         CourseMaterialRepository courseMaterialRepository) {
+                         CourseMaterialRepository courseMaterialRepository,
+                         LessonRepository lessonRepository) {
         this.courseRepository = courseRepository;
         this.studentRepository = studentRepository;
         this.instructorRepository = instructorRepository;
         this.questionRepository = questionRepository;
         this.courseMaterialRepository = courseMaterialRepository;
+        this.lessonRepository = lessonRepository;
     }
 
     private String getUploadPath(Long courseId) {
@@ -316,6 +319,31 @@ public class CourseService {
         );
 
 
+    }
+    public void addingLesson(Long c_id,LessonDto lesson){
+        
+        Lesson lesson2 = new Lesson();
+        // to set the otp of the specific lesson of this course.
+        // for adding lesson to the array of lesson in course class.
+        // saving our lesson
+        Course course = courseRepository.findById(c_id)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + c_id));
+        // Generate a random four-digit number
+        long randomFourDigits = (long)(Math.random() * 9000) + 1000;
+        lesson2.setOtp(randomFourDigits);// to set the otp of the specific lesson of this course.
+        lesson2.setCourse(course);
+        lesson2.setDescription(lesson.getDescription());
+        lesson2.setName(lesson.getName());
+        lessonRepository.save(lesson2);// saving our lesson
+    }
+
+    public LessonDto getLesson(Long otp,Long c_id){
+        Course course = courseRepository.findById(c_id)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + c_id));
+
+        Lesson lesson = lessonRepository.findLessonByotp(otp);// Tyring to find the lesson of this specific course by its own otp.
+        LessonDto lesson2 = new LessonDto(lesson.getName(),lesson.getDescription());
+        return lesson2;
     }
 
 

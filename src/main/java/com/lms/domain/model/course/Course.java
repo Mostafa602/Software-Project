@@ -40,37 +40,27 @@ public class Course {
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private Set<CourseMaterial> courseMaterials;
-
+    
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
-    private Set<Quiz> quizzes;
-
-    public List<Assignment> getAssignmentList() {
-        return assignmentList;
-    }
-
-    public void setAssignmentList(List<Assignment> assignmentList) {
-        this.assignmentList = assignmentList;
-    }
-
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
-    private List<Assignment> assignmentList;
+    private List<Lesson> lessons;
 
     public Course(String name, String description, Instructor instructor) {
         this.name = name;
         this.description = description;
-        this.enrolledNum = 0;
+        this.enrolledNum = 0 ;
         this.instructors = new HashSet<>();
         this.instructors.add(instructor);
         this.questionBank = new QuestionBank();
         this.courseMaterials = new HashSet<>();
-        this.assignmentList = new ArrayList<>();
+        this.lessons = new ArrayList<>();
     }
 
     public Course() {
         this.instructors = new HashSet<>();
         this.courseMaterials = new HashSet<>();
         this.questionBank = new QuestionBank();
-        this.assignmentList = new ArrayList<>();
+        this.lessons = new ArrayList<>();
+
     }
 
     public Set<String> getInstructorsFullNames() {
@@ -79,6 +69,10 @@ public class Course {
             fullNames.add(instructor.getFullName());
         }
         return fullNames;
+    }
+
+    public void addLesson(Lesson lesson){
+        lessons.add(lesson);
     }
 
     public Long getId() {
