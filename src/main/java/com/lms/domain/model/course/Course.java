@@ -41,6 +41,9 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private Set<CourseMaterial> courseMaterials;
 
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    private Set<Quiz> quizzes;
+
     public List<Assignment> getAssignmentList() {
         return assignmentList;
     }

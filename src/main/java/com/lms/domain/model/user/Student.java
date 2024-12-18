@@ -1,6 +1,7 @@
 package com.lms.domain.model.user;
 
 import com.lms.domain.model.course.AssignmentSubmission;
+import com.lms.domain.model.course.QuizSubmission;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -13,17 +14,11 @@ public class Student extends User {
     private Float gpa;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
+    private List<QuizSubmission> quizzes;
+
+
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
     private List<AssignmentSubmission> assignments;
-
-
-
-    public List<AssignmentSubmission> getAssignments() {
-        return assignments;
-    }
-
-    public void setAssignments(List<AssignmentSubmission> assignments) {
-        this.assignments = assignments;
-    }
 
 
 
@@ -45,6 +40,21 @@ public class Student extends User {
     }
 
 
+    public List<QuizSubmission> getQuizzes() {
+        return quizzes;
+    }
+
+    public void setQuizzes(List<QuizSubmission> quizzes) {
+        this.quizzes = quizzes;
+    }
+
+    public List<AssignmentSubmission> getAssignments() {
+        return assignments;
+    }
+
+    public void setAssignments(List<AssignmentSubmission> assignments) {
+        this.assignments = assignments;
+    }
 
 
 }

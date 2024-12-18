@@ -57,4 +57,18 @@ public class QuestionBank {
     public void removeQuestion(Question question) {
         this.questions.remove(question);
     }
+
+    public Question findQuestionById(Long questionId) {
+        if (questionId == null) {
+            throw new IllegalArgumentException("Question id cannot be null");
+        }
+
+        for (Question question : this.questions) {
+            if (question.getId().equals(questionId)) {
+                return question;
+            }
+        }
+
+        throw new EntityNotFoundException("Question not found with ID: " + questionId);
+    }
 }

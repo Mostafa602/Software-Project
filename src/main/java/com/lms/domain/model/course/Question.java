@@ -62,4 +62,11 @@ public class Question {
     public void addChoice(Choice choice) {
         this.choices.add(choice);
     }
+
+    public Choice getCorrectChoice() {
+        return choices.stream()
+                .filter(Choice::isTrue)
+                .findFirst()
+                .get();
+    }
 }
