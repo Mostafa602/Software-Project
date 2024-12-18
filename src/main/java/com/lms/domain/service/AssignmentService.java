@@ -10,6 +10,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+
 @Service
 public class AssignmentService {
     @Autowired
@@ -23,17 +25,17 @@ public class AssignmentService {
         this.courseRepository = courseRepository;
     }
 
-    public String createAssignment(Long courseId,AssignmentDto assignment) {
+    public void createAssignment(Long courseId, AssignmentDto assignment) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + courseId));
         Assignment newAssignment = new Assignment(course,assignment.getDueDate(),assignment.getDescription(),
                 assignment.getTitle());
         assignmentRepository.save(newAssignment);
-        return "Assignment is created successfully";
     }
 
     public void updateAssignment(Long courseId, Long assignmentId, AssignmentDto updatedAssignment) {
-        Assignment existingAssignment = assignmentRepository.findById(assignmentId).get();
+        Assignment existingAssignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new EntityNotFoundException("Assignment not found with ID: " + assignmentId));
 
         if (updatedAssignment.getTitle() != null) {
             existingAssignment.setTitle(updatedAssignment.getTitle());
@@ -47,8 +49,14 @@ public class AssignmentService {
         assignmentRepository.save(existingAssignment);
     }
 
-    public Assignment getAssignment(Long assignmentId) {
-        return assignmentRepository.getReferenceById(assignmentId);
+    public AssignmentDto getAssignment(Long assignmentId) {
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new EntityNotFoundException("Assignment not found with ID: " + assignmentId));
+        String title = assignment.getTitle();
+        String description = assignment.getDescription();
+        Date date = assignment.getDueDate();
+
+        return new AssignmentDto(date,description,title);
     }
 
 

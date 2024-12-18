@@ -5,9 +5,11 @@ import com.lms.domain.dto.course.CourseMaterialResponseDto;
 import com.lms.domain.dto.course.MaterialTransferDto;
 import com.lms.domain.dto.course.SetGradeDto;
 import com.lms.domain.execptionhandler.InternalServerException;
+import com.lms.domain.execptionhandler.UnauthorizedAccessException;
 import com.lms.domain.model.course.Assignment;
 import com.lms.domain.model.course.AssignmentSubmission;
 import com.lms.domain.model.course.CourseMaterial;
+import com.lms.domain.model.user.Roles;
 import com.lms.domain.model.user.Student;
 import com.lms.domain.repository.AssignmentRepository;
 import com.lms.domain.repository.AssignmentSubmissionRepository;
@@ -24,27 +26,30 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import java.util.Objects;
 
 
 @Service
 public class AssignmentSubmissionService {
 
-    @Autowired
+    private final CourseService courseService;
+    private final UserService userService;
     AssignmentSubmissionRepository assignmentSubmissionRepository;
-
-    @Autowired
     StudentRepository studentRepository;
-
-    @Autowired
     AssignmentRepository assignmentRepository;
     private final String uploadPath = "uploads/%d";
+
     private String getUploadPath(Long courseId) {
         return String.format(uploadPath, courseId);
     }
 
-    public AssignmentSubmissionService(AssignmentSubmissionRepository assignmentSubmissionRepository) {
+    public AssignmentSubmissionService(AssignmentSubmissionRepository assignmentSubmissionRepository,
+                                       StudentRepository studentRepository, AssignmentRepository assignmentRepository, CourseService courseService, UserService userService) {
         this.assignmentSubmissionRepository = assignmentSubmissionRepository;
+        this.studentRepository = studentRepository;
+        this.assignmentRepository = assignmentRepository;
+        this.courseService = courseService;
+        this.userService = userService;
     }
 
     public void SubmitAssignment(Long sId, Long aId, MultipartFile file) {
@@ -52,6 +57,7 @@ public class AssignmentSubmissionService {
                 .orElseThrow(() -> new EntityNotFoundException("Student not found with ID: " + sId));
         Assignment assignment = assignmentRepository.findById(aId)
                 .orElseThrow(() -> new EntityNotFoundException("Assignment not found with ID: " + aId));
+
 
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
@@ -66,14 +72,14 @@ public class AssignmentSubmissionService {
             AssignmentSubmission assignmentSubmission = new AssignmentSubmission(student,
                     targetPath.toString(), assignment
             );
-            assignmentSubmission = assignmentSubmissionRepository.save(assignmentSubmission);
+            assignmentSubmissionRepository.save(assignmentSubmission);
         }
         catch (Exception e){
             throw new IllegalArgumentException(e.getMessage());
         }
     }
 
-    public Resource getSubmission(Long subId) {
+    public MaterialTransferDto getSubmission(Long subId) {
         AssignmentSubmission assignmentSubmission = assignmentSubmissionRepository.findById(subId).orElseThrow(
                 ()-> new EntityNotFoundException("Submission not found with ID: " + subId)
         );
@@ -102,7 +108,9 @@ public class AssignmentSubmissionService {
         }
         String sysFileName = file.getName();
         String fileName = sysFileName.substring(sysFileName.indexOf("_")+1);
-        return resource;
+        return new MaterialTransferDto(
+                resource, contentType, fileName
+        );
     }
 
     public void gradeAssignment(Long subId, SetGradeDto grade) {
@@ -117,6 +125,10 @@ public class AssignmentSubmissionService {
         AssignmentSubmission assignmentSubmission = assignmentSubmissionRepository.findById(subId).orElseThrow(
                 ()-> new EntityNotFoundException("Submission not found with ID: " + subId)
         );
+        if(userService.getCurrentUserRole()== Roles.ROLE_STUDENT &&
+                !Objects.equals(userService.getCurrentUserId(), assignmentSubmission.getStudent().getId())){
+            throw new UnauthorizedAccessException();
+        }
         SetGradeDto grade = new SetGradeDto();
         grade.setGrade(assignmentSubmission.getGrade());
         return grade;
