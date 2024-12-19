@@ -6,6 +6,7 @@ import com.lms.domain.execptionhandler.MissingFieldsException;
 import com.lms.domain.execptionhandler.UnauthorizedAccessException;
 import com.lms.domain.model.user.Roles;
 import com.lms.domain.service.CourseService;
+import com.lms.domain.service.NotificationService;
 import com.lms.domain.service.QuizService;
 import com.lms.domain.service.UserService;
 import org.springframework.http.HttpStatus;
@@ -21,17 +22,20 @@ public class QuizController {
     private final QuizService quizService;
     private final UserService userService;
     private final CourseService courseService;
+    private final NotificationService notificationService;
 
 
-    public QuizController(QuizService quizService, UserService userService, CourseService courseService) {
+    public QuizController(QuizService quizService, UserService userService, CourseService courseService, NotificationService notificationService) {
         this.quizService = quizService;
         this.userService = userService;
         this.courseService = courseService;
+        this.notificationService = notificationService;
     }
 
     @PostMapping("/")
     public ResponseEntity<?> createQuiz(@PathVariable Long courseId,
                                         @RequestBody QuizCreationDto quizCreationDto) {
+        notificationService.addNotification("Quiz has been created " , 1L);
         if(quizCreationDto.getTitle()==null || quizCreationDto.getNumberOfQuestions()==null) {
             throw new MissingFieldsException("provide all required fields");
         }

@@ -7,7 +7,6 @@ import com.lms.domain.repository.UserRepository;
 import com.lms.domain.execptionhandler.ConflictException;
 import com.lms.domain.execptionhandler.UnauthorizedAccessException;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.beanvalidation.SpringValidatorAdapter;
 
@@ -19,7 +18,6 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
 
-    @Autowired
     public NotificationService(NotificationRepository notificationRepository, UserRepository userRepository) {
         this.notificationRepository = notificationRepository;
         this.userRepository = userRepository;
@@ -43,12 +41,6 @@ public class NotificationService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         if (isRead == null) {
             return notificationRepository.findByUser(user);
-        }
-        else if (isRead) {
-            return notificationRepository.findByUserAndIsRead(user, isRead);
-        }
-        else {
-            return notificationRepository.findByUserAndIsRead(user, isRead);
         }
     }
 
