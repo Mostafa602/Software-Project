@@ -32,5 +32,6 @@ public class LmsApplication {
                 courseRepository.save(new Course("Python", "Python Programming", hema));
             }
         };
+
     }
 }
