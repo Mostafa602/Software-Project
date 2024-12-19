@@ -35,7 +35,6 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Notification> notifications;
 
-
     public User(String firstName, String lastName, String email, String password, Roles role) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -43,7 +42,6 @@ public class User implements UserDetails {
         this.email = email;
         this.password = password;
     }
-
 
     public User() { }
 

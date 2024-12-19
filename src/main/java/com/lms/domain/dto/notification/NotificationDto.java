@@ -1,10 +1,13 @@
-package com.lms.domain.dto.Notification;
+package com.lms.domain.dto.notification;
+import org.springframework.beans.factory.annotation.Autowired;
+
 
 public class NotificationDto {
     private Long id;
     private String content;
     private Boolean isRead;
 
+    @Autowired
     NotificationDto( long id, String content, Boolean isRead ){
         this.id = id;
         this.content = content;
@@ -31,7 +34,8 @@ public class NotificationDto {
         return this.isRead;
     }
 
-    public void setIsRead( Boolean isRead){
+    public void setIsRead( boolean isRead){
         this.isRead = isRead;
     }
+
 }
