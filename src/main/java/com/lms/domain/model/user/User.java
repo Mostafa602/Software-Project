@@ -1,5 +1,6 @@
 package com.lms.domain.model.user;
 
+import com.lms.domain.model.notification.Notification;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,8 +32,9 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     Roles role;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Notification> notifications;
 
-// ctor, getters, setters
 
     public User(String firstName, String lastName, String email, String password, Roles role) {
         this.firstName = firstName;
