@@ -40,15 +40,13 @@ public class Course {
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private Set<CourseMaterial> courseMaterials;
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Assignment> assignmentList;
+
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private Set<Quiz> quizzes;
-    public List<Assignment> getAssignmentList() {
-        return assignmentList;
-    }
-    public void setAssignmentList(List<Assignment> assignmentList) {
-        this.assignmentList = assignmentList;
-    }
+
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Lesson> lessons;
 
@@ -162,5 +160,10 @@ public class Course {
         this.questionBank = questionBank;
     }
 
-
+    public List<Assignment> getAssignmentList() {
+        return assignmentList;
+    }
+    public void setAssignmentList(List<Assignment> assignmentList) {
+        this.assignmentList = assignmentList;
+    }
 }
