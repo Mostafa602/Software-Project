@@ -3,7 +3,7 @@ package com.lms.domain.dto.auth;
 public class LoginDto {
     private String email;
     private String password;
-    LoginDto(String email, String password) {
+    public LoginDto(String email, String password) {
         this.email = email;
         this.password = password;
     }
