@@ -2,6 +2,8 @@ package com.lms.domain.model.user;
 
 import com.lms.domain.model.course.AssignmentSubmission;
 import com.lms.domain.model.course.QuizSubmission;
+import com.lms.domain.model.email.EmailNotification;
+import com.lms.domain.model.notification.Notification;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -19,7 +21,6 @@ public class Student extends User {
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL)
     private List<AssignmentSubmission> assignments;
-
 
 
     public Student(String firstName, String lastName, String email, String password) {

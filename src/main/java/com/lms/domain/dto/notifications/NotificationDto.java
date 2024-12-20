@@ -1,4 +1,4 @@
-package com.lms.domain.dto.notification;
+package com.lms.domain.dto.notifications;
 import org.springframework.beans.factory.annotation.Autowired;
 
 

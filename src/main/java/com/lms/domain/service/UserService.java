@@ -116,10 +116,16 @@ public class UserService {
                 user.getEmail()
         );
     }
+
     public void deleteUserById(Long id) {
         if (!userRepository.existsById(id) ) {
             throw new EntityNotFoundException("User not found with id = " + id);
         }
         userRepository.deleteById(id);
     }
+
+    public Optional<User> getUserByEmail( String email ){
+        return userRepository.findByEmail(email);
+    }
+
 }

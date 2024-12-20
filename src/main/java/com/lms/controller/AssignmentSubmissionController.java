@@ -33,14 +33,15 @@ public class AssignmentSubmissionController {
     private final UserService userService;
     private final CourseService courseService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     public AssignmentSubmissionController(AssignmentSubmissionService assignmentSubmissionService, UserService userService, CourseService courseService,
-                                          NotificationService notificationService) {
+                                          NotificationService notificationService, EmailService emailService) {
         this.assignmentSubmissionService = assignmentSubmissionService;
         this.userService = userService;
         this.courseService = courseService;
         this.notificationService = notificationService;
-
+        this.emailService = emailService;
     }
 
     @PostMapping("/submit")
@@ -48,7 +49,7 @@ public class AssignmentSubmissionController {
         Long userId = userService.getCurrentUserId();
         assignmentSubmissionService.SubmitAssignment(userId,aId,file);
 
-        String message  = "You have submit " + assignmentSubmissionService.getAssignmentById(aId).getTitle();
+        String message  = "You have submit " + assignmentSubmissionService.getAssignmentById(aId).getTitle() + " successfully";
         notificationService.addNotification(message, userId, "student");
 
         return ResponseEntity.status(HttpStatus.OK).body(new BasicResponseDto(
@@ -75,9 +76,10 @@ public class AssignmentSubmissionController {
         }
         assignmentSubmissionService.gradeAssignment(subId,grade);
         Long id = assignmentSubmissionService.getAssignmentSubmission(subId).getStudent().getId();
+        String studentEmail = assignmentSubmissionService.getAssignmentSubmission(subId).getStudent().getEmail();
         String message = "You get " + grade+ " in " + assignmentSubmissionService.getAssignmentSubmission(subId).getAssignment().getTitle();
         notificationService.addNotification(message,id,"student");
-
+        emailService.sendEmail(studentEmail,"New Grade", message,  userService.getUserById(userService.getCurrentUserId()).getFirstName() ) ;
         return ResponseEntity.status(HttpStatus.OK).body(new BasicResponseDto(
                 "success", "Assignment Successfully graded"
         ));

@@ -11,6 +11,7 @@ import com.lms.domain.model.user.Roles;
 import com.lms.domain.model.user.Student;
 import com.lms.domain.repository.NotificationRepository;
 import com.lms.domain.service.CourseService;
+import com.lms.domain.service.EmailService;
 import com.lms.domain.service.NotificationService;
 import com.lms.domain.service.UserService;
 import org.springframework.http.HttpHeaders;
@@ -32,12 +33,13 @@ public class CourseController {
     private final CourseService courseService;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
-
-    public CourseController(CourseService courseService, UserService userService, NotificationService notificationService) {
+    public CourseController(CourseService courseService, UserService userService, NotificationService notificationService, EmailService emailService) {
         this.courseService = courseService;
         this.userService = userService;
         this.notificationService = notificationService;
+        this.emailService = emailService;
     }
 
     // access : ALL
@@ -137,6 +139,14 @@ public class CourseController {
             notificationService.addNotification(finalMessage, instructor.getId(), "instructor");
         }
 
+        String studentEmail = userService.getUserById( courseEnrollmentDto.getStudentId()).getEmail();
+        String contentt= "There is a new course have been uploaded " + courseName+" and you have been enrolled into it";
+        String name ;
+        if (userService.getCurrentUserRole() == Roles.ROLE_STUDENT)
+            name = "System";
+        else name = userService.getUserById( courseEnrollmentDto.getStudentId()).getFirstName();
+        emailService.sendEmail(studentEmail,"Enrollment", contentt,name );
+
         return ResponseEntity.status(HttpStatus.CREATED).body(new BasicResponseDto(
                 "success",
                 "Student enrolled successfully!"
@@ -177,6 +187,14 @@ public class CourseController {
             notificationService.addNotification(finalMessage, instructor.getId(),"instructor");
         }
 
+        String studentEmail = userService.getUserById( courseEnrollmentDto.getStudentId()).getEmail();
+        String contentt= "You have been unenrolled from  " + courseName;
+        String name ;
+        if (userService.getCurrentUserRole() == Roles.ROLE_STUDENT)
+            name = "System";
+        else  name = userService.getUserById( courseEnrollmentDto.getStudentId()).getFirstName();
+        emailService.sendEmail(studentEmail,"Exit From Course", contentt, name );
+
         return ResponseEntity.status(HttpStatus.CREATED).body(new BasicResponseDto(
                 "success",
                 "Student unenrolled successfully!"
@@ -197,9 +215,10 @@ public class CourseController {
         String courseName = course.getName();
         String content = "A new question has been added to the course: " + courseName;
         Set<Student> enrolledStudents = courseService.findEnrolledStudent(courseId);
+        String name = userService.getUserById(userService.getCurrentUserId()).getFirstName();
         for (Student student : enrolledStudents) {
             notificationService.addNotification(content, student.getId(), "student");
-
+            emailService.sendEmail( student.getEmail(), "New questions",content, name );
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new BasicResponseDto(
@@ -235,10 +254,12 @@ public class CourseController {
         String courseName = course.getName();
         String content = "An existing question has been deleted from  course: " + courseName;
         Set<Student> enrolledStudents = courseService.findEnrolledStudent(courseId);
+        String name = userService.getUserById(userService.getCurrentUserId()).getFirstName();
         for (Student student : enrolledStudents) {
             notificationService.addNotification(content, student.getId(),"student");
-        }
+            emailService.sendEmail( student.getEmail(), "New questions",content, name );
 
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(new BasicResponseDto(
                 "success", "Question deleted successfully!"
@@ -269,18 +290,21 @@ public class CourseController {
         if(type == null || file == null || file.isEmpty() || courseId == null) {
             throw new MissingFieldsException("all fields must be provided.");
         }
+
         CourseDto course = courseService.getCourseById(courseId);
         String courseName = course.getName();
-        String content = "A new material has been added to the course: " + courseName;
+        String content = "A new material has been added to " + courseName + " course";
         Set<Student> enrolledStudents = courseService.findEnrolledStudent(courseId);
+        String name = userService.getUserById(userService.getCurrentUserId()).getFirstName();
+
         for (Student student : enrolledStudents) {
             notificationService.addNotification(content, student.getId(),"student");
+            emailService.sendEmail( student.getEmail(), "New material",content, name );
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 courseService.addMaterial(courseId, file, type)
         );
-
     }
 
     // access : ALL -> ADMIN or INSTRUCTOR (if instructing only) or STUDENT (if enrolled only)
@@ -317,8 +341,11 @@ public class CourseController {
         String courseName = course.getName();
         String content = "A new lesson has been added to the course: " + courseName;
         Set<Student> enrolledStudents = courseService.findEnrolledStudent((Long) c_id);
+        String name = userService.getUserById(userService.getCurrentUserId()).getFirstName();
+
         for (Student student : enrolledStudents) {
             notificationService.addNotification(content, student.getId(),"student");
+            emailService.sendEmail( student.getEmail(), "New Lesson",content, name );
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(new BasicResponseDto(
                 "success", "lesson added successfully!"

@@ -10,8 +10,13 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @ControllerAdvice
+@RestControllerAdvice
 public class GlobalException {
     @ExceptionHandler
     public ResponseEntity<BasicResponseDto> entityNotFoundExceptionHandler(EntityNotFoundException e) {
@@ -68,6 +73,17 @@ public class GlobalException {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new BasicResponseDto("error", e.getMessage() + e.getClass().getName()));
+    }
+
+
+    @ExceptionHandler(EmailSendingException.class)
+    public ResponseEntity<Map<String, Object>> handleEmailSendingException(EmailSendingException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        body.put("error", "Email Sending Error");
+        body.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 
 
