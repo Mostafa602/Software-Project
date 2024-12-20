@@ -1,6 +1,6 @@
 package com.lms.domain.service;
 
-import com.lms.domain.dto.notification.NotificationDto;
+import com.lms.domain.dto.notifications.NotificationDto;
 import com.lms.domain.model.notification.Notification;
 import com.lms.domain.model.user.User;
 import com.lms.domain.repository.NotificationRepository;
