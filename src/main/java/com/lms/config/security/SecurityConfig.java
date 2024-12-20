@@ -54,6 +54,11 @@ public class SecurityConfig {
                     registry.requestMatchers(HttpMethod.PUT, "courses/{courseId}/assignments/{aId}").hasAnyRole("INSTRUCTOR", "ADMIN"); // Update an assignment
                     registry.requestMatchers(HttpMethod.POST, "courses/{courseId}/assignments/{aId}/submit").hasRole("STUDENT"); // Submit assignment
                     registry.requestMatchers(HttpMethod.POST, "courses/{courseId}/assignments/{aId}/grade/submission/{subId}").hasAnyRole("INSTRUCTOR", "ADMIN"); // Grade assignment
+                    registry.requestMatchers(HttpMethod.GET, "users/{userid}/notification").hasAnyRole("INSTRUCTOR", "STUDENT"); // See the notification
+                    registry.requestMatchers(HttpMethod.GET, "courses/{courseId}/lesson/{OTP}").hasAnyRole("INSTRUCTOR", "STUDENT", "ADMIN"); //  Get a lesson by its otp
+                    registry.requestMatchers(HttpMethod.POST, "courses/{courseId}/lesson/").hasAnyRole("INSTRUCTOR", "ADMIN"); // Create a lesson for a specific course
+
+
 
                     registry.anyRequest().authenticated();
                 })

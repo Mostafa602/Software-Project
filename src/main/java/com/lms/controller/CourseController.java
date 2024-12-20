@@ -4,9 +4,14 @@ import com.lms.domain.dto.BasicResponseDto;
 import com.lms.domain.dto.course.*;
 import com.lms.domain.execptionhandler.MissingFieldsException;
 import com.lms.domain.execptionhandler.UnauthorizedAccessException;
+import com.lms.domain.model.course.Course;
 import com.lms.domain.model.course.Material;
+import com.lms.domain.model.user.Instructor;
 import com.lms.domain.model.user.Roles;
+import com.lms.domain.model.user.Student;
+import com.lms.domain.repository.NotificationRepository;
 import com.lms.domain.service.CourseService;
+import com.lms.domain.service.NotificationService;
 import com.lms.domain.service.UserService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -18,17 +23,21 @@ import jakarta.persistence.EntityNotFoundException;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/courses")
 public class CourseController {
     private final CourseService courseService;
     private final UserService userService;
+    private final NotificationService notificationService;
 
 
-    public CourseController(CourseService courseService, UserService userService) {
+    public CourseController(CourseService courseService, UserService userService, NotificationService notificationService) {
         this.courseService = courseService;
         this.userService = userService;
+        this.notificationService = notificationService;
     }
 
     // access : ALL
@@ -40,7 +49,7 @@ public class CourseController {
     // access : ALL
     @GetMapping("/{courseId}")
     public ResponseEntity<?> getCourseById(@PathVariable Long courseId) {
-            return ResponseEntity.status(HttpStatus.OK).body(courseService.getCourseById(courseId));
+        return ResponseEntity.status(HttpStatus.OK).body(courseService.getCourseById(courseId));
     }
 
     // access : ADMIN or INSTRUCTOR (if instructing only)
@@ -116,6 +125,17 @@ public class CourseController {
         }
 
         courseService.enrollStudent(courseEnrollmentDto.getCourseId(), courseEnrollmentDto.getStudentId());
+        String nameStudent = userService.getUserById( courseEnrollmentDto.getStudentId()).getFirstName();
+        Long courseId = courseEnrollmentDto.getCourseId();
+        String courseName = courseService.getCourseById(courseId).getName();
+        String content = nameStudent +" you have been enrolled into " + courseName + " Course";
+        notificationService.addNotification(content,courseEnrollmentDto.getStudentId(),"student");
+        Set<Instructor> instructors = courseService.findInstructors(courseId);
+        String message = " has been enrolled into your ";
+        for( Instructor instructor : instructors ){
+            String finalMessage = nameStudent + message + courseName + " course";
+            notificationService.addNotification(finalMessage, instructor.getId(), "instructor");
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new BasicResponseDto(
                 "success",
@@ -139,16 +159,28 @@ public class CourseController {
         }
 
         if(userService.getCurrentUserRole() == Roles.ROLE_INSTRUCTOR &&
-        !courseService.isInstructing(userService.getCurrentUserId() ,courseEnrollmentDto.getCourseId())) {
+                !courseService.isInstructing(userService.getCurrentUserId() ,courseEnrollmentDto.getCourseId())) {
             throw new UnauthorizedAccessException();
         }
 
         courseService.unenrollStudent(courseEnrollmentDto.getCourseId(), courseEnrollmentDto.getStudentId());
+        Long courseId = courseEnrollmentDto.getCourseId();
+        String courseName = courseService.getCourseById(courseId).getName();
+        String studentName = userService.getUserById( courseEnrollmentDto.getStudentId()).getFirstName();
+        String content = studentName +" you have been unenrolled from " +
+                courseName + " Course";
+        notificationService.addNotification(content,courseEnrollmentDto.getStudentId(),"student");
+        Set<Instructor> instructors = courseService.findInstructors(courseId);
+        String message = " has been unenrolled from your ";
+        for( Instructor instructor : instructors ){
+            String finalMessage = studentName + message + courseName + " course";
+            notificationService.addNotification(finalMessage, instructor.getId(),"instructor");
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(new BasicResponseDto(
                 "success",
                 "Student unenrolled successfully!"
         ));
-
     }
 
     // access : ADMIN or INSTRUCTOR (if instructing only)
@@ -159,13 +191,21 @@ public class CourseController {
                 !courseService.isInstructing(userService.getCurrentUserId() ,courseId)) {
             throw new UnauthorizedAccessException();
         }
-
         courseService.addQuestion(courseId, questionDto);
+
+        CourseDto course = courseService.getCourseById(courseId);
+        String courseName = course.getName();
+        String content = "A new question has been added to the course: " + courseName;
+        Set<Student> enrolledStudents = courseService.findEnrolledStudent(courseId);
+        for (Student student : enrolledStudents) {
+            notificationService.addNotification(content, student.getId(), "student");
+
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(new BasicResponseDto(
                 "success",
                 "Question added successfully!"
         ));
-
     }
 
     // access : ADMIN or INSTRUCTOR (if instructing only)
@@ -190,6 +230,16 @@ public class CourseController {
         }
 
         courseService.deleteQuestion(questionId);
+
+        CourseDto course = courseService.getCourseById(courseId);
+        String courseName = course.getName();
+        String content = "An existing question has been deleted from  course: " + courseName;
+        Set<Student> enrolledStudents = courseService.findEnrolledStudent(courseId);
+        for (Student student : enrolledStudents) {
+            notificationService.addNotification(content, student.getId(),"student");
+        }
+
+
         return ResponseEntity.status(HttpStatus.OK).body(new BasicResponseDto(
                 "success", "Question deleted successfully!"
         ));
@@ -208,8 +258,8 @@ public class CourseController {
     // access : ADMIN or INSTRUCTOR (if instructing only)
     @PostMapping("/{courseId}/materials")
     public ResponseEntity<?> addMaterial(@PathVariable Long courseId,
-        @RequestParam("file")  MultipartFile file,
-         @RequestParam("type") Material type
+                                         @RequestParam("file")  MultipartFile file,
+                                         @RequestParam("type") Material type
     ) {
         if(userService.getCurrentUserRole() == Roles.ROLE_INSTRUCTOR &&
                 !courseService.isInstructing(userService.getCurrentUserId() ,courseId)) {
@@ -219,6 +269,14 @@ public class CourseController {
         if(type == null || file == null || file.isEmpty() || courseId == null) {
             throw new MissingFieldsException("all fields must be provided.");
         }
+        CourseDto course = courseService.getCourseById(courseId);
+        String courseName = course.getName();
+        String content = "A new material has been added to the course: " + courseName;
+        Set<Student> enrolledStudents = courseService.findEnrolledStudent(courseId);
+        for (Student student : enrolledStudents) {
+            notificationService.addNotification(content, student.getId(),"student");
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 courseService.addMaterial(courseId, file, type)
         );
@@ -240,28 +298,35 @@ public class CourseController {
         }
 
         MaterialTransferDto materialTransferDto = courseService.getMaterial(materialId);
-         return ResponseEntity.ok()
-                 .contentType(MediaType.parseMediaType(materialTransferDto.getContentType()))
-                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + materialTransferDto.getName() + "\"")
-                 .body(materialTransferDto.getResource());
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(materialTransferDto.getContentType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + materialTransferDto.getName() + "\"")
+                .body(materialTransferDto.getResource());
 
     }
     // lesson
     @PostMapping("/{courseId}/lesson/")
-    public ResponseEntity<?> postMethodName(@PathVariable("courseId") long c_id,@RequestBody LessonDto lesson) {
+    public ResponseEntity<?> addLesson (@PathVariable("courseId") long c_id,@RequestBody LessonDto lesson) {
 
         if(userService.getCurrentUserRole() == Roles.ROLE_INSTRUCTOR &&
                 !courseService.isInstructing(userService.getCurrentUserId() ,c_id)) {
             throw new UnauthorizedAccessException();
         }
         courseService.addingLesson(c_id, lesson);
+        CourseDto course = courseService.getCourseById((Long) c_id);
+        String courseName = course.getName();
+        String content = "A new lesson has been added to the course: " + courseName;
+        Set<Student> enrolledStudents = courseService.findEnrolledStudent((Long) c_id);
+        for (Student student : enrolledStudents) {
+            notificationService.addNotification(content, student.getId(),"student");
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(new BasicResponseDto(
-            "success", "lesson added successfully!"
+                "success", "lesson added successfully!"
         ));
     }
 
     @GetMapping("/{courseId}/lesson/{OTP}")
-    public ResponseEntity<?> getMethodName(@PathVariable("courseId") Long c_id,@PathVariable("OTP") Long OTP) {
+    public ResponseEntity<?> getLesson (@PathVariable("courseId") Long c_id,@PathVariable("OTP") Long OTP) {
 
         if(userService.getCurrentUserRole() == Roles.ROLE_INSTRUCTOR &&
                 !courseService.isInstructing(userService.getCurrentUserId() ,c_id)) {

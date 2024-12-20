@@ -6,12 +6,22 @@ public class NotificationDto {
     private Long id;
     private String content;
     private Boolean isRead;
+    private  String type;
 
     @Autowired
-    NotificationDto( long id, String content, Boolean isRead ){
+    public NotificationDto(long id, String content, Boolean isRead, String type){
         this.id = id;
         this.content = content;
         this.isRead = isRead;
+        this.type = type;
+    }
+
+    public void setType(){
+        this.type = type;
+    }
+
+    public String getType(){
+        return this.type;
     }
 
     public Long getId() {

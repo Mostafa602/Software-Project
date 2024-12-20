@@ -90,6 +90,17 @@ public class CourseService {
                 .collect(Collectors.toList());
     }
 
+    public Set<Student> findEnrolledStudent(Long id){
+        return courseRepository.findEnrolledStudentsById(id);
+    }
+
+    public Set<Instructor> findInstructors (Long id ){
+        Course course = courseRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Course not found with ID: " + id)
+        );
+        return course.getInstructors();
+    }
+
     public CourseDto getCourseById(Long id){
         Course course = courseRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Course not found with ID: " + id)

@@ -9,9 +9,8 @@ import com.lms.domain.execptionhandler.UnauthorizedAccessException;
 import com.lms.domain.model.course.AssignmentSubmission;
 import com.lms.domain.model.course.Course;
 import com.lms.domain.model.user.Roles;
-import com.lms.domain.service.AssignmentSubmissionService;
-import com.lms.domain.service.CourseService;
-import com.lms.domain.service.UserService;
+import com.lms.domain.model.user.Student;
+import com.lms.domain.service.*;
 import org.apache.catalina.connector.Response;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.core.io.Resource;
@@ -30,20 +29,28 @@ import java.security.Principal;
 @RequestMapping("/courses/{courseId}/assignments/{aId}")
 public class AssignmentSubmissionController {
 
-    AssignmentSubmissionService assignmentSubmissionService;
-    UserService userService;
-    CourseService courseService;
+    private final AssignmentSubmissionService assignmentSubmissionService;
+    private final UserService userService;
+    private final CourseService courseService;
+    private final NotificationService notificationService;
 
-    public AssignmentSubmissionController(AssignmentSubmissionService assignmentSubmissionService, UserService userService, CourseService courseService) {
+    public AssignmentSubmissionController(AssignmentSubmissionService assignmentSubmissionService, UserService userService, CourseService courseService,
+                                          NotificationService notificationService) {
         this.assignmentSubmissionService = assignmentSubmissionService;
         this.userService = userService;
         this.courseService = courseService;
+        this.notificationService = notificationService;
+
     }
 
     @PostMapping("/submit")
     public ResponseEntity<?> SubmitAssignment(@PathVariable Long aId, @RequestBody MultipartFile file) {
         Long userId = userService.getCurrentUserId();
         assignmentSubmissionService.SubmitAssignment(userId,aId,file);
+
+        String message  = "You have submit " + assignmentSubmissionService.getAssignmentById(aId).getTitle();
+        notificationService.addNotification(message, userId, "student");
+
         return ResponseEntity.status(HttpStatus.OK).body(new BasicResponseDto(
                 "success", "Assignment submitted successfully"
         ));
@@ -58,6 +65,7 @@ public class AssignmentSubmissionController {
                 .body(materialTransferDto.getResource());
     }
 
+
     @PostMapping("/submission/{subId}/grade")
     public ResponseEntity<?> gradeAssignment(@PathVariable Long subId, @RequestBody SetGradeDto grade) {
         if (grade.getGrade() < 0 || grade.getGrade() > 100) {
@@ -66,6 +74,10 @@ public class AssignmentSubmissionController {
             ));
         }
         assignmentSubmissionService.gradeAssignment(subId,grade);
+        Long id = assignmentSubmissionService.getAssignmentSubmission(subId).getStudent().getId();
+        String message = "You get " + grade+ " in " + assignmentSubmissionService.getAssignmentSubmission(subId).getAssignment().getTitle();
+        notificationService.addNotification(message,id,"student");
+
         return ResponseEntity.status(HttpStatus.OK).body(new BasicResponseDto(
                 "success", "Assignment Successfully graded"
         ));

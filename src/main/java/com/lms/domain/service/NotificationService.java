@@ -1,5 +1,6 @@
 package com.lms.domain.service;
 
+import com.lms.domain.dto.notification.NotificationDto;
 import com.lms.domain.model.notification.Notification;
 import com.lms.domain.model.user.User;
 import com.lms.domain.repository.NotificationRepository;
@@ -25,11 +26,13 @@ public class NotificationService {
         this.userRepository = userRepository;
     }
 
-    public void addNotification( String content, Long userId   ){
+    public void addNotification( String content, Long userId, String type    ){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with ID: " + userId));
         Notification notification = new Notification();
         notification.setContent(content);
+        notification.setType(type);
+        notification.setRead(false);
         notification.setUser(user);
         notificationRepository.save(notification);
     }
@@ -39,17 +42,31 @@ public class NotificationService {
         notificationRepository.saveAll(notifications);
     }
 
-    public List<Notification> getNotifications(Long userId, Boolean isRead) {
+    public List<NotificationDto> getNotifications(Long userId, Boolean isRead) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Notification> notifications;
+
         if (isRead == null) {
-            return notificationRepository.findByUser(user);
-        }
-        else if (isRead) {
-            return notificationRepository.findByUserAndIsRead(user, isRead);
-        }
-        else {
-            return notificationRepository.findByUserAndIsRead(user, isRead);
+            notifications = notificationRepository.findByUser(user);
+            List<NotificationDto> answer = notifications.stream()
+                    .map(notification -> new NotificationDto(notification.getId(), notification.getContent(), notification.getRead(), notification.getType())
+                    )
+                    .toList();
+            makeNotificationRead(notifications);
+            return answer;
+        } else {
+            notifications = notificationRepository.findByUserAndIsRead(user, isRead);
+            List<NotificationDto> answer = notifications.stream()
+                    .map(notification -> new NotificationDto(notification.getId(), notification.getContent(), notification.getRead(), notification.getType())
+                    )
+                    .toList();
+            if ( !isRead ){
+                makeNotificationRead(notifications);
+            }
+            return answer;
         }
     }
+
 }

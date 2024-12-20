@@ -19,12 +19,25 @@ public class Notification {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+
+    @Column
+    private String type;
+
     public Notification (){ }
 
-    public Notification(String content, Boolean isRead , User user) {
+    public Notification(String content, Boolean isRead , User user, String type) {
         this.content = content;
         this.isRead = isRead;
         this.user = user;
+        this.type = type;
+    }
+
+    public String getType(){
+        return this.type;
+    }
+
+    public void setType(String type){
+        this.type = type;
     }
 
     public Long getId(){

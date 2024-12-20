@@ -79,6 +79,18 @@ public class AssignmentSubmissionService {
         }
     }
 
+    public Assignment getAssignmentById( Long id ){
+        return assignmentRepository.findById(id).orElseThrow(
+                ()-> new EntityNotFoundException("Submission not found with ID: " + id)
+        );
+    }
+
+    public AssignmentSubmission getAssignmentSubmission( Long subId ){
+        return assignmentSubmissionRepository.findById(subId).orElseThrow(
+                ()-> new EntityNotFoundException("Submission not found with ID: " + subId)
+        );
+    }
+
     public MaterialTransferDto getSubmission(Long subId) {
         AssignmentSubmission assignmentSubmission = assignmentSubmissionRepository.findById(subId).orElseThrow(
                 ()-> new EntityNotFoundException("Submission not found with ID: " + subId)

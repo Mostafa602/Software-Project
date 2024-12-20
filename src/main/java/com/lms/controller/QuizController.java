@@ -35,7 +35,7 @@ public class QuizController {
     @PostMapping("/")
     public ResponseEntity<?> createQuiz(@PathVariable Long courseId,
                                         @RequestBody QuizCreationDto quizCreationDto) {
-        notificationService.addNotification("Quiz has been created " , 1L);
+        notificationService.addNotification("Quiz has been created " , 1L,"student");
         if(quizCreationDto.getTitle()==null || quizCreationDto.getNumberOfQuestions()==null) {
             throw new MissingFieldsException("provide all required fields");
         }
