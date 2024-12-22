@@ -30,17 +30,17 @@ public class EmailNotificationController {
         this.emailService = emailService;
     }
 
-    @GetMapping("/{studentId}")
-    public ResponseEntity<List<EmailDto>> getEmailNotifications(@PathVariable Long studentId) {
-        if (userService == null) {
-            throw new RuntimeException("UserService is null!");
-        }
-        if ((userService.getCurrentUserRole() != Roles.ROLE_STUDENT ) || (!studentId.equals(userService.getCurrentUserId())) ) {
-            throw new UnauthorizedAccessException();
-        }
-        List<EmailDto> emailNotifications = emailService.findEmailNotificationByStudentId(studentId);
-        return ResponseEntity.status(HttpStatus.OK).body(emailNotifications);
-    }
+//    @GetMapping("/{studentId}")
+//    public ResponseEntity<List<EmailDto>> getEmailNotifications(@PathVariable Long studentId) {
+//        if (userService == null) {
+//            throw new RuntimeException("UserService is null!");
+//        }
+//        if ((userService.getCurrentUserRole() != Roles.ROLE_STUDENT ) || (!studentId.equals(userService.getCurrentUserId())) ) {
+//            throw new UnauthorizedAccessException();
+//        }
+//        List<EmailDto> emailNotifications = emailService.findEmailNotificationByStudentId(studentId);
+//        return ResponseEntity.status(HttpStatus.OK).body(emailNotifications);
+//    }
 
     @PostMapping
     public ResponseEntity<BasicResponseDto>  createEmailNotification (@RequestBody EmailDto emailDto){

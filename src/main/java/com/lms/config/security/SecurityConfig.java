@@ -57,7 +57,6 @@ public class SecurityConfig {
                     registry.requestMatchers(HttpMethod.GET, "users/{userid}/notification").hasAnyRole("INSTRUCTOR", "STUDENT"); // See the notification
                     registry.requestMatchers(HttpMethod.GET, "courses/{courseId}/lesson/{OTP}").hasAnyRole("INSTRUCTOR", "STUDENT", "ADMIN"); //  Get a lesson by its otp
                     registry.requestMatchers(HttpMethod.POST, "courses/{courseId}/lesson/").hasAnyRole("INSTRUCTOR", "ADMIN"); // Create a lesson for a specific course
-                    registry.requestMatchers(HttpMethod.GET, "emails/{studentId}").hasAnyRole( "STUDENT"); //  Get an email
                     registry.requestMatchers(HttpMethod.POST, "emails").hasAnyRole("INSTRUCTOR", "ADMIN"); //  Create an email
 
 
