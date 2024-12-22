@@ -48,14 +48,4 @@ public class AuthController {
         );
 
     }
-
-    @GetMapping("/test")
-    public ResponseEntity<BasicResponseDto> test(){
-        return ResponseEntity.status(HttpStatus.OK).body(
-                new BasicResponseDto(
-                        "success",
-                        "test"
-                )
-        );
-    }
 }

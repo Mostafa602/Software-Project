@@ -51,11 +51,5 @@ public class AuthControllerTest {
     }
 
 
-    @Test
-    public void testTestEndpoint() throws Exception {
-        mockMvc.perform(get("/test"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("success"))
-                .andExpect(jsonPath("$.message").value("test"));
-    }
+
 }

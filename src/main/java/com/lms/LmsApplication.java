@@ -23,11 +23,11 @@ public class LmsApplication {
     @Bean
     public CommandLineRunner insertDummyData(UserRepository userRepository, CourseRepository courseRepository) {
         return args -> {
-            Instructor hema = new Instructor("Ibrahim", "Mkhasy", "hema@gees.com", new BCryptPasswordEncoder().encode("123"));
+            Instructor hema = new Instructor("Ibrahim", "ElGayar", "hema@gayar.com", new BCryptPasswordEncoder().encode("123"));
 
             if (userRepository.count() == 0) {
-                userRepository.save(new Student("Tamer", "ElGayar","tamer@gees.com", new BCryptPasswordEncoder().encode("123")));
-                userRepository.save(new Student("Not", "ElGayar","gayar@gees.com", new BCryptPasswordEncoder().encode("123")));
+                userRepository.save(new Student("Tamer", "ElGayar","tamer@gayar.com", new BCryptPasswordEncoder().encode("123")));
+                userRepository.save(new Student("Osama", "ElGayar","gayar@gayar.com", new BCryptPasswordEncoder().encode("123")));
                 userRepository.save(hema);
             }
             if(courseRepository.count() == 0) {
